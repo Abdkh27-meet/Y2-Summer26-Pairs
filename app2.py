@@ -49,10 +49,10 @@ Response format:
         )
 
         reply = response.content[0].text
-        print(f'Claude: {reply}')
+        print(f'Carmelo Sean: {reply}')
         history.append({'role': 'assistant', 'content': reply})
 
-run_chat()
+
 
 
 
