@@ -1,4 +1,8 @@
 import os
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -38,15 +42,22 @@ IMOPRTANT values
     
     history = []
     goal=input("What is your goal for this chat? ")
+    print("how can I help you with your goal ? ")
     # bonous 1
     dynamic_system_message = system_message + f"\n\nThe user's specific goal for this session is: {goal}"
     while True:
         
         
-        user_input = input('>> so how can I help you today? ')
+        user_input = input('>> ')
 
         if user_input.lower() == 'exit':
             break
+        
+        if user_input.lower() == 'save':
+            path = export_history_to_pdf(history)
+            print(f'Saved conversation to {path}')
+            continue
+
 
         history.append({'role': 'user', 'content': user_input})
         #the massages will be 6 ,3 for the user and 3 for the assistant
@@ -72,6 +83,61 @@ IMOPRTANT values
         
 
         history.append({'role': 'assistant', 'content': reply})
+
+
+
+
+def export_history_to_pdf(history, output_path="output/entropo_chat.pdf"):
+    """
+    Converts the chat history (list of role/content dicts) into a PDF file.
+    """
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+
+    doc = SimpleDocTemplate(output_path, pagesize=A4,
+                             topMargin=1*inch, bottomMargin=1*inch)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph("Entropo Chat History", styles["Title"]))
+    story.append(Spacer(1, 0.3*inch))
+
+    for message in history:
+        role = "You" if message["role"] == "user" else "Entropo"
+        # Paragraph treats < and > as XML tags, so escape any that appear in the text
+        safe_content = message["content"].replace("<", "&lt;").replace(">", "&gt;")
+        story.append(Paragraph(f"<b>{role}:</b> {safe_content}", styles["Normal"]))
+        story.append(Spacer(1, 0.15*inch))
+
+    doc.build(story)
+    return os.path.abspath(output_path)
+
+
+
+run_chat()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
