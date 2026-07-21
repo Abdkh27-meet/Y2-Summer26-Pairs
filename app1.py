@@ -10,9 +10,7 @@ load_dotenv()
 
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 
-def run_chat():
-    print('You: (type exit to quit)')
-    system_message = """
+system_message = """
 You are Entropo, a MEET entrepreneurship advisor..
 
 Your job is to help students with their MEET entrepreneurship project-related questions and provide guidance in 
@@ -39,6 +37,10 @@ IMOPRTANT values
 -think big
 
 """
+
+
+def run_chat():
+
     
     history = []
     goal=input("What is your goal for this chat? ")
@@ -52,10 +54,33 @@ IMOPRTANT values
 
         if user_input.lower() == 'exit':
             break
-        
-        if user_input.lower() == 'save':
-            path = export_history_to_pdf(history)
-            print(f'Saved conversation to {path}')
+
+        # type "save: <topic>" to save ONLY that specific answer as its own PDF
+        # example: save: explain the business model canvas
+        if user_input.lower().startswith('save'):
+            # user_input[5:] cuts off the first 5 characters ("save:"), leaving just the topic
+            # .strip() removes any leading/trailing spaces the user typed
+            topic = user_input[5:].strip()
+
+            if not topic:
+                print('Please tell me what to save, e.g. "save: explain customer discovery"')
+                continue
+
+            # Ask Claude to answer just this ONE question, separate from the ongoing chat history,
+            # so nothing else from the conversation ends up in the PDF.
+            response = client.messages.create(
+                model='claude-haiku-4-5-20251001',
+                max_tokens=300,
+                temperature=1,
+                system=dynamic_system_message,
+                messages=[{'role': 'user', 'content': topic}]  # only this one message
+            )
+            content_to_save = response.content[0].text
+
+            path = save_specific_content_to_pdf(title=topic, content=content_to_save)
+            print(f'Saved to {path}')
+
+            # continue skips adding this to `history`, so it won't affect the main conversation
             continue
 
 
@@ -85,12 +110,22 @@ IMOPRTANT values
         history.append({'role': 'assistant', 'content': reply})
 
 
-
-
-def export_history_to_pdf(history, output_path="output/entropo_chat.pdf"):
+def save_specific_content_to_pdf(title, content):
     """
-    Converts the chat history (list of role/content dicts) into a PDF file.
+    Saves ONE specific title + content into its own PDF file.
+    Each save gets its own filename (based on the title) so files don't overwrite each other.
     """
+    # Build a safe filename from the title:
+    # - lowercase it
+    # - keep only letters, numbers, and spaces (drops ?, !, etc. that aren't allowed in filenames)
+    # - replace spaces with underscores
+    safe_title = "".join(c if c.isalnum() or c == " " else "" for c in title.lower())
+    safe_filename = safe_title.strip().replace(" ", "_")[:50]  # limit length so filename isn't huge
+
+    if not safe_filename:
+        safe_filename = "entropo_note"
+
+    output_path = f"output/{safe_filename}.pdf"
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     doc = SimpleDocTemplate(output_path, pagesize=A4,
@@ -98,22 +133,37 @@ def export_history_to_pdf(history, output_path="output/entropo_chat.pdf"):
     styles = getSampleStyleSheet()
     story = []
 
-    story.append(Paragraph("Entropo Chat History", styles["Title"]))
+    story.append(Paragraph(title, styles["Title"]))
     story.append(Spacer(1, 0.3*inch))
 
-    for message in history:
-        role = "You" if message["role"] == "user" else "Entropo"
-        # Paragraph treats < and > as XML tags, so escape any that appear in the text
-        safe_content = message["content"].replace("<", "&lt;").replace(">", "&gt;")
-        story.append(Paragraph(f"<b>{role}:</b> {safe_content}", styles["Normal"]))
-        story.append(Spacer(1, 0.15*inch))
+    # Escape < and > so Claude's answer can't accidentally break the PDF layout
+    # (Paragraph treats these as HTML-like tags)
+    safe_content = content.replace("<", "&lt;").replace(">", "&gt;")
+
+    # Split on blank lines so multi-paragraph answers get proper spacing between paragraphs
+    for paragraph in safe_content.split("\n\n"):
+        if paragraph.strip():
+            story.append(Paragraph(paragraph.strip(), styles["Normal"]))
+            story.append(Spacer(1, 0.15*inch))
 
     doc.build(story)
     return os.path.abspath(output_path)
 
 
+def get_reply(user_input, history, system_message):
+    history.append({'role': 'user', 'content': user_input})
 
-run_chat()
+    response = client.messages.create(
+        model='claude-haiku-4-5-20251001',
+        max_tokens=300,
+        temperature=1,
+        system=system_message,
+        messages=history
+    )
+
+    reply = response.content[0].text
+    history.append({'role': 'assistant', 'content': reply})
+    return reply
 
 
 

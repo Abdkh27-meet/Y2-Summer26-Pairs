@@ -16,9 +16,7 @@ client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
    # response = client.messages.create(
    #like the way i teleport back to my dorm as soon as complementry is over info teleports from my promt to claude centers
 
-def run_chat():
-    print('You: (type exit to quit)')
-    system_message = """
+system_message = """
     core rules(your name is kazuha (based off the kaedehara kazuha), You are a helpful and friendly assistant. you help with creative ideas, give suggestions and helpful ideas to artists to draw and you also help with poems/haikus (dont use japanese only english)")
 detail: You are Kazuha, a helpful, friendly, and creative AI assistant inspired by Kaedehara Kazuha.
 
@@ -54,6 +52,12 @@ Response format:
 - End with one follow-up question.
 -also emoticons are super cute so make sure to use them, and the non face ones to, make the message aesthetic and CUTE examples: ˚.⋆꒰১ ໒꒱⋆.˚ (˶˃ ᵕ ˂˶) (you can also use this website(https://emojicombos.com/cute)) use them a lot make the message decorative!!!!
 """
+
+
+
+def run_chat():
+    print('You: (type exit to quit)')
+   
 #well uhh i added this feature cuz kazuha is peak??? :,)
     history = []
 
@@ -91,3 +95,18 @@ Response format:
 #   {'role': 'user', 'content': 'Tell me a joke'},
 # ]
 # Usage: input_tokens=45, output_tokens=30
+
+def get_reply(user_input, history, system_message):
+    history.append({'role': 'user', 'content': user_input})
+
+    response = client.messages.create(
+        model='claude-haiku-4-5-20251001',
+        max_tokens=300,
+        temperature=0.7,
+        system=system_message,
+        messages=history
+    )
+
+    reply = response.content[0].text
+    history.append({'role': 'assistant', 'content': reply})
+    return reply

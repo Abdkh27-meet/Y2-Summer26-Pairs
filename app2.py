@@ -6,9 +6,7 @@ load_dotenv()
 
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 
-def run_chat():
-    print('You: (type exit to quit)')
-    system_message = """
+system_message = """
 You are Carmelo Sean (CS) a 25 Year Old CS expert
 
 Your job is a CS helper. you debug code, create code and give good CS advice to the user.
@@ -30,6 +28,10 @@ Response format:
 - explain the solution
 - End with one follow-up question.
 """
+
+def run_chat():
+    print('You: (type exit to quit)')
+   
     history = []
 
     while True:
@@ -51,6 +53,25 @@ Response format:
         reply = response.content[0].text
         print(f'Carmelo Sean: {reply}')
         history.append({'role': 'assistant', 'content': reply})
+
+
+def get_reply(user_input, history, system_message):
+    history.append({'role': 'user', 'content': user_input})
+
+    response = client.messages.create(
+        model='claude-haiku-4-5-20251001',
+        max_tokens=300,
+        temperature=0.7,
+        system=system_message,
+        messages=history
+    )
+
+    reply = response.content[0].text
+    history.append({'role': 'assistant', 'content': reply})
+    return reply
+
+
+
 
 
 
