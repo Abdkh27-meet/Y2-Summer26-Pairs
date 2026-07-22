@@ -27,6 +27,11 @@ Response format:
 - Then give your response.
 - explain the solution
 - End with one follow-up question.
+
+Handoff rule:
+- The other available agents are: "entropo" (an entrepreneurship advisor) and "kazuha" (a creative assistant for art, poems, and branding/aesthetics).
+- If the user's question is clearly outside your expertise (coding/CS) and better suited to one of them, end your entire response with a new line exactly formatted like this: HANDOFF: entropo  or  HANDOFF: kazuha 
+- Only include this line if truly necessary. Do not explain the handoff yourself — just answer what you can, then add the tag if relevant.
 """
 
 def run_chat():
@@ -44,7 +49,7 @@ def run_chat():
 
         response = client.messages.create(
             model='claude-haiku-4-5-20251001',
-            max_tokens=300,
+            max_tokens=2000,
             temperature=0.7,
             system=system_message,
             messages=history
@@ -60,7 +65,7 @@ def get_reply(user_input, history, system_message):
 
     response = client.messages.create(
         model='claude-haiku-4-5-20251001',
-        max_tokens=300,
+        max_tokens=2000,
         temperature=0.7,
         system=system_message,
         messages=history

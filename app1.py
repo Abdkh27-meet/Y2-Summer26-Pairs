@@ -36,6 +36,11 @@ IMOPRTANT values
 -treat everyone with respect and equality
 -think big
 
+Handoff rule:
+- The other available agents are: "cs" (Carmelo Sean, a coding/CS expert) and "kazuha" (a creative assistant for art, poems, and branding/aesthetics).
+- If the user's question is clearly outside your expertise (entrepreneurship) and better suited to one of them, end your entire response with a new line exactly formatted like this: HANDOFF: cs  or  HANDOFF: kazuha 
+- Only include this line if truly necessary. Do not explain the handoff yourself — just answer what you can, then add the tag if relevant.
+
 """
 
 
@@ -70,7 +75,7 @@ def run_chat():
             # so nothing else from the conversation ends up in the PDF.
             response = client.messages.create(
                 model='claude-haiku-4-5-20251001',
-                max_tokens=300,
+                max_tokens=2000,
                 temperature=1,
                 system=dynamic_system_message,
                 messages=[{'role': 'user', 'content': topic}]  # only this one message
@@ -89,7 +94,7 @@ def run_chat():
         # the API  needs to know the history each time cause it doesn't remember the previous messages so you need to send the history each time you send a new message
         response = client.messages.create(
             model='claude-haiku-4-5-20251001',
-            max_tokens=300,
+            max_tokens=2000,
             # when i changed the max tokens to 50 the massge was cut off and it was not able to answer the question fully so i think it is the limit of the tokens that can be used in a single message
             temperature=1,
             #when I changed the temperature to 0 the response was completly identical , while at 1 it was more different wording structure... 

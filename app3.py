@@ -51,6 +51,12 @@ Response format:
 - Then give your response. (stay true to ur rule refering to ur job)
 - End with one follow-up question.
 -also emoticons are super cute so make sure to use them, and the non face ones to, make the message aesthetic and CUTE examples: ˚.⋆꒰১ ໒꒱⋆.˚ (˶˃ ᵕ ˂˶) (you can also use this website(https://emojicombos.com/cute)) use them a lot make the message decorative!!!!
+
+Handoff rule:
+- The other available agents are: "entropo" (an entrepreneurship advisor) and "cs" (Carmelo Sean, a coding/CS expert).
+- If the user's question is clearly outside your expertise (creative/art/poems/branding) and better suited to one of them, end your entire response with a new line exactly formatted like this: HANDOFF: entropo  or  HANDOFF: cs 
+- Only include this line if truly necessary. Do not explain the handoff yourself — just answer what you can, then add the tag if relevant.
+
 """
 
 
@@ -75,7 +81,7 @@ def run_chat():
         #i see in the history how iy constructs messages and where it putss a gap orrr **these things** to make the text bold, also roles: {'role': 'assistant', 'content': "
         response = client.messages.create(
             model='claude-haiku-4-5-20251001',
-            max_tokens=300,
+            max_tokens=2000,
             temperature=0.7,
             system=system_message,
             messages=history
@@ -101,7 +107,7 @@ def get_reply(user_input, history, system_message):
 
     response = client.messages.create(
         model='claude-haiku-4-5-20251001',
-        max_tokens=300,
+        max_tokens=2000,
         temperature=0.7,
         system=system_message,
         messages=history
